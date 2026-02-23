@@ -45,6 +45,11 @@
                 </attributeTypes>
             </property>
 
+            <property key="viewOnly" type="boolean" defaultValue="false">
+                <caption>View Only</caption>
+                <description>Attribute to make field view only.</description>
+            </property>
+
 
         </propertyGroup>
     </properties>

@@ -67,7 +67,7 @@ const defaultStyle = {
 
 
 export function AttachmentPicker(props) {
-    const { label, buttonBackground, style } = props
+    const { label, buttonBackground, style, viewOnly } = props
     const styles = mergeNativeStyles(defaultStyle, style);
     const [selectedFile, setSelectedFile] = useState(null);
     const [pendingFileName, setPendingFileName] = useState(null);
@@ -85,16 +85,17 @@ export function AttachmentPicker(props) {
 
     const theme = {
         light: {
-            labelText: "#000",
+            labelText: "#797e86",
         },
         dark: {
-            labelText: "#fff",
+            labelText: "#797e86",
         }
     };
     const currentTheme = isDark ? theme.dark : theme.light;
     const labelStyle = {
         color: currentTheme.labelText,
         fontSize: 18,
+        weight: "800",
         marginBottom: 4
     };
     useEffect(() => {
@@ -258,12 +259,19 @@ export function AttachmentPicker(props) {
                         <Icon name="visibility" style={styles.icon} />
                     </TouchableOpacity>
                 )}
-                <TouchableOpacity onPress={handlePick} style={[
-                    styles.iconContainer,
-                    { backgroundColor: resolvedBg }
-                ]}>
-                    <Icon name="attach-file" style={styles.icon} />
-                </TouchableOpacity>
+
+                {!viewOnly && (
+                    <TouchableOpacity
+                        onPress={handlePick}
+                        style={[
+                            styles.iconContainer,
+                            { backgroundColor: resolvedBg }
+                        ]}
+                    >
+                        <Icon name="attach-file" style={styles.icon} />
+                    </TouchableOpacity>
+                )}
+
             </View>
             <Modal visible={modalVisible} transparent={false}>
                 <TouchableOpacity
