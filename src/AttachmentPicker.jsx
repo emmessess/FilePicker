@@ -1,4 +1,4 @@
-import React, { createElement, useCallback, useState, useEffect } from "react";
+import React, { createElement, useCallback, useState, useEffect, useRef } from "react";
 import { View, Text, TouchableOpacity, Alert, Modal, Image, useColorScheme } from "react-native";
 import DocumentPicker from "react-native-document-picker";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
@@ -76,6 +76,7 @@ export function AttachmentPicker(props) {
     const [modalVisible, setModalVisible] = useState(false);
     const [previewType, setPreviewType] = useState(null); // "image" or "pdf"
     const [previewUri, setPreviewUri] = useState(null);
+    const lastPreviewedContentRef = useRef(null);
 
     const resolvedBg =
         buttonBackground?.value || buttonBackground || "#FF7AFF";
@@ -99,34 +100,30 @@ export function AttachmentPicker(props) {
         marginBottom: 4
     };
     useEffect(() => {
-        const fileName = props.fileName?.value;
-        const mimeType = props.mimeType?.value;
-        const content = props.content?.value;
+        const fileName = props.fileName?.value || null;
+        const mimeType = props.mimeType?.value || null;
+        const content = props.content?.value || null;
 
+        // Keep filename in sync with Mendix, but don't rebuild preview on filename changes.
         if (fileName) {
             setSelectedFile(fileName);
-            setPendingFileName(fileName);
-            setPendingFileType(mimeType || "application/octet-stream");
-
-            // If Mendix has content (Base64), prepare for preview
-            if (content) {
-                setPendingFileContent(content);
-
-                // Build preview directly from Base64
-                if (mimeType?.startsWith("image")) {
-                    setPreviewUri(`data:${mimeType};base64,${content}`);
-                    setPreviewType("image");
-                } else if (mimeType?.includes("pdf")) {
-                    setPreviewUri(`data:application/pdf;base64,${content}`);
-                    setPreviewType("pdf");
-                }
-            }
         }
-    }, [
-        props.fileName?.value,
-        props.mimeType?.value,
-        props.content?.value
-    ]);
+
+        // Only rebuild preview when the underlying content actually changes.
+        if (!content || content === lastPreviewedContentRef.current) {
+            return;
+        }
+
+        lastPreviewedContentRef.current = content;
+
+        if (mimeType?.startsWith("image")) {
+            setPreviewUri(`data:${mimeType};base64,${content}`);
+            setPreviewType("image");
+        } else if (mimeType?.includes("pdf")) {
+            setPreviewUri(`data:application/pdf;base64,${content}`);
+            setPreviewType("pdf");
+        }
+    }, [props.fileName?.value, props.mimeType?.value, props.content?.value]);
 
     useEffect(() => {
         if (
@@ -162,7 +159,14 @@ export function AttachmentPicker(props) {
         }
 
 
-    }, [pendingFileName, props.fileName, pendingFileContent, props.FileContent, pendingFileType, props.setPendingFileType, props.onFileSelected]);
+    }, [
+        pendingFileName,
+        pendingFileType,
+        pendingFileContent,
+        props.fileName,
+        props.mimeType,
+        props.content
+    ]);
 
     const handlePick = useCallback(() => {
         Alert.alert("Select Source", "", [
@@ -190,6 +194,7 @@ export function AttachmentPicker(props) {
             setPendingFileName(result.name);
             setPendingFileType(result.type || "application/octet-stream");
             setPendingFileContent(base64);
+            lastPreviewedContentRef.current = base64 || null;
 
         } catch (err) {
             if (!DocumentPicker.isCancel(err)) {
@@ -215,6 +220,7 @@ export function AttachmentPicker(props) {
         setPendingFileName(asset.fileName);
         setPendingFileType(asset.type || "image/jpeg");
         setPendingFileContent(asset.base64 || "");
+        lastPreviewedContentRef.current = asset.base64 || null;
     };
 
     const handleGallery = async () => {
@@ -233,6 +239,7 @@ export function AttachmentPicker(props) {
         setPendingFileName(asset.fileName);
         setPendingFileType(asset.type || "image/jpeg");
         setPendingFileContent(asset.base64 || "");
+        lastPreviewedContentRef.current = asset.base64 || null;
     };
 
     const openPreview = () => {
