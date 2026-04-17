@@ -280,20 +280,44 @@ export function AttachmentPicker(props) {
                 )}
 
             </View>
-            <Modal visible={modalVisible} transparent={false}>
-                <TouchableOpacity
-                    style={styles.modalContainer}
-                    onPress={() => setModalVisible(false)}
-                >
-                    {previewType === "image" ? (
-                        <Image source={{ uri: previewUri }} style={styles.fullImage} />
-                    ) : (
-                        <Pdf
-                            source={{ uri: previewUri }}
-                            style={{ width: "100%", height: "100%" }}
-                        />
-                    )}
-                </TouchableOpacity>
+            <Modal visible={modalVisible} transparent={true}>
+                <View style={{ flex: 1, backgroundColor: "black" }}>
+
+                    {/* Close Button */}
+                    <TouchableOpacity
+                        onPress={() => setModalVisible(false)}
+                        style={{
+                            position: "absolute",
+                            top: 60,
+                            right: 20,
+                            zIndex: 10,
+                            backgroundColor: "rgba(0,0,0,0.5)", // 👈 key fix
+                            borderRadius: 20,
+                            padding: 8,
+                            shadowColor: "#000",
+                            shadowOpacity: 0.3,
+                            shadowRadius: 4,
+                            elevation: 5
+                        }}
+                    >
+                        <Icon name="close" size={24} color="#fff" />
+                    </TouchableOpacity>
+
+                    {/* Content (NO touch handler here) */}
+                    <View style={{ flex: 1 }}>
+                        {previewType === "image" ? (
+                            <Image
+                                source={{ uri: previewUri }}
+                                style={styles.fullImage}
+                            />
+                        ) : (
+                            <Pdf
+                                source={{ uri: previewUri }}
+                                style={{ flex: 1 }}
+                            />
+                        )}
+                    </View>
+                </View>
             </Modal>
 
         </View>
